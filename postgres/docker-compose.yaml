@@ -8,15 +8,18 @@ services:
       - 5432:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./initdb.sql:/docker-entrypoint-initdb.d/init.sql 
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - postgres
+    
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
@@ -25,18 +28,20 @@ services:
         condition: service_healthy
     environment: 
       PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: postgres
+      PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'True'
-      # PGADMIN_SERVER_JSON_FILE: '/config/default_connection.json'
+      PGADMIN_SERVER_JSON_FILE: '/config/default_connection.json'
     volumes:
-      - pgadmin-data:/config
+      - ./pgadmin:/config
     ports: 
       - "5050:80"
     restart: always
-    
+    networks:
+      - postgres
+      
 volumes:
   postgres-data:
     name: postgres-data
-  pgadmin-data:
-    name: pgadmin-data
-    
+
+networks:
+  postgres:

@@ -1,11 +1,11 @@
 {
     "Servers": {
         "1": {
-            "Name": "postgres",
+            "Name": "demo",
             "Group": "Servers",
             "Port": 5432,
             "Username": "postgres",
-            "Host": "0.0.0.0",
+            "Host": "localhost",
             "SSLMode": "prefer",
             "MaintenanceDB": "postgres"
         }
