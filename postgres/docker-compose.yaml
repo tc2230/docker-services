@@ -1,9 +1,9 @@
 version: '3'
-
 services:
-  app:
+  pgserver:
     container_name: postgres-container
     image: postgres:latest
+    restart: always
     ports:
       - 5432:5432
     volumes:
@@ -11,9 +11,32 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: laravel
-
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    depends_on:
+      pgserver:
+        condition: service_healthy
+    environment: 
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+      PGADMIN_CONFIG_SERVER_MODE: 'True'
+      # PGADMIN_SERVER_JSON_FILE: '/config/default_connection.json'
+    volumes:
+      - pgadmin-data:/config
+    ports: 
+      - "5050:80"
+    restart: always
+    
 volumes:
   postgres-data:
     name: postgres-data
+  pgadmin-data:
+    name: pgadmin-data
     
