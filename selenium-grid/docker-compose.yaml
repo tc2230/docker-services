@@ -1,0 +1,118 @@
+version: "3"
+volumes:
+    Selenium_server:
+services:
+  selenium-event-bus:
+    image: selenium/event-bus:4.18.1-20240224
+    container_name: selenium-event-bus
+    ports:
+      - "${SE_EVENT_BUS_PUBLISH_PORT}:${SE_EVENT_BUS_PUBLISH_PORT}"
+      - "${SE_EVENT_BUS_PUBLISH_PORT}:${SE_EVENT_BUS_PUBLISH_PORT}"
+      - "${SE_EVENT_BUS_INTERNAL_PORT}:${SE_EVENT_BUS_INTERNAL_PORT}"
+    environment:
+      - SE_EVENT_BUS_PUBLISH_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_INTERNAL_PORT=${SE_EVENT_BUS_INTERNAL_PORT}
+
+  selenium-sessions:
+    image: selenium/sessions:4.18.1-20240224
+    container_name: selenium-sessions
+    ports:
+      - "${SE_SESSIONS_MAP_PORT}:${SE_SESSIONS_MAP_PORT}"
+    depends_on:
+      - selenium-event-bus
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-event-bus
+      - SE_EVENT_BUS_PUBLISH_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_SESSIONS_MAP_PORT=${SE_SESSIONS_MAP_PORT}
+
+  selenium-session-queue:
+    image: selenium/session-queue:4.18.1-20240224
+    container_name: selenium-session-queue
+    ports:
+      - "${SE_SESSION_QUEUE_PORT}:${SE_SESSION_QUEUE_PORT}"
+    environment:
+      - SE_SESSION_QUEUE_PORT=${SE_SESSION_QUEUE_PORT}
+
+  selenium-distributor:
+    image: selenium/distributor:4.18.1-20240224
+    container_name: selenium-distributor
+    ports:
+      - "${SE_DISTRIBUTOR_PORT}:${SE_DISTRIBUTOR_PORT}"
+    depends_on:
+      - selenium-event-bus
+      - selenium-sessions
+      - selenium-session-queue
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-event-bus
+      - SE_EVENT_BUS_PUBLISH_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=${SE_EVENT_BUS_SUBSCRIBE_PORT}
+      - SE_SESSIONS_MAP_HOST=selenium-sessions
+      - SE_SESSIONS_MAP_PORT=${SE_SESSIONS_MAP_PORT}
+      - SE_SESSION_QUEUE_HOST=selenium-session-queue
+      - SE_SESSION_QUEUE_PORT=${SE_SESSION_QUEUE_PORT}
+      - SE_DISTRIBUTOR_PORT=${SE_DISTRIBUTOR_PORT}
+
+  selenium-router:
+    image: selenium/router:4.18.1-20240224
+    container_name: selenium-router
+    ports:
+      - "${SE_ROUTER_PORT}:${SE_ROUTER_PORT}"
+    depends_on:
+      - selenium-distributor
+      - selenium-sessions
+      - selenium-session-queue
+    environment:
+      - SE_ROUTER_PORT=${SE_ROUTER_PORT}
+      - SE_DISTRIBUTOR_HOST=selenium-distributor
+      - SE_DISTRIBUTOR_PORT=${SE_DISTRIBUTOR_PORT}
+      - SE_SESSIONS_MAP_HOST=selenium-sessions
+      - SE_SESSIONS_MAP_PORT=${SE_SESSIONS_MAP_PORT}
+      - SE_SESSION_QUEUE_HOST=selenium-session-queue
+      - SE_SESSION_QUEUE_PORT=${SE_SESSION_QUEUE_PORT}
+
+  chrome:
+    image: selenium/node-chrome:4.18.1-20240224
+    shm_size: 4gb
+    depends_on:
+      - selenium-event-bus
+    volumes:
+      - /dev/shm:/dev/shm
+      - Selenium_server:/home/seluser/Downloads/
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-event-bus
+      - SE_EVENT_BUS_PUBLISH_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=${SE_EVENT_BUS_SUBSCRIBE_PORT}
+      - SE_NODE_MAX_SESSIONS=${SE_NODE_MAX_SESSIONS}
+      - NODE_MAX_INSTANCES=${NODE_MAX_INSTANCES}
+
+  edge:
+    image: selenium/node-edge:4.18.1-20240224
+    shm_size: 4gb
+    depends_on:
+      - selenium-event-bus
+    volumes:
+      - /dev/shm:/dev/shm
+      - Selenium_server:/home/seluser/Downloads/
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-event-bus
+      - SE_EVENT_BUS_PUBLISH_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=${SE_EVENT_BUS_SUBSCRIBE_PORT}
+      - SE_NODE_MAX_SESSIONS=${SE_NODE_MAX_SESSIONS}
+      - NODE_MAX_INSTANCES=${NODE_MAX_INSTANCES}
+
+  firefox:
+    image: selenium/node-firefox:4.18.1-20240224
+    shm_size: 4gb
+    depends_on:
+      - selenium-event-bus
+    volumes:
+      - /dev/shm:/dev/shm
+      - Selenium_server:/home/seluser/Downloads/
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-event-bus
+      - SE_EVENT_BUS_PUBLISH_PORT=${SE_EVENT_BUS_PUBLISH_PORT}
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=${SE_EVENT_BUS_SUBSCRIBE_PORT}
+      - SE_NODE_MAX_SESSIONS=${SE_NODE_MAX_SESSIONS}
+      - NODE_MAX_INSTANCES=${NODE_MAX_INSTANCES}
