@@ -21,7 +21,7 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: root
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: admin
-      ME_CONFIG_MONGODB_URL: mongodb://mongodb-server:27017
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb-server:27017 # this line will work as expected only if ME_CONFIG_MONGODB_SERVER is set simultaneounly, currently. (https://github.com/mongo-express/mongo-express-docker/issues/113)
     depends_on:
       - mongodb-server
 
