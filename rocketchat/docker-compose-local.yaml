@@ -8,7 +8,7 @@ services:
       traefik.enable: "true"
       traefik.http.routers.rocketchat.rule: Host(`${DOMAIN:-}`)&& PathPrefix(`${SUBPATH:-}`)
       traefik.http.routers.rocketchat.tls: "true"
-      traefik.http.routers.rocketchat.entrypoints: https
+#      traefik.http.routers.rocketchat.entrypoints: https
       traefik.http.routers.rocketchat.tls.certresolver: le
       traefik.http.services.rocketchat.loadbalancer.server.port: 3000
       traefik.http.middlewares.rocketchat-stripprefix.replacepathregex.regex: ^/chat/(.*)
@@ -30,18 +30,16 @@ services:
       - mongodb-server
     expose:
       - ${PORT:-3000}
-#    ports:
-#      - "${BIND_IP:-0.0.0.0}:${HOST_PORT:-3000}:${PORT:-3000}"
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${HOST_PORT:-3000}:${PORT:-3000}"
     networks:
       - service-network
 
   mongodb-server:
     image: mongo:latest # mongodb/mongodb-community-server:latest
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
-    expose:
-      - 27017
-#    ports:
-#      - 27017:27017
+    ports:
+      - 27017:27017
 #    extra_hosts:
 #      - "host.docker.internal:host-gateway"
     healthcheck:
@@ -68,24 +66,22 @@ services:
     networks:
       - service-network
 
-#  mongodb-express:
-#    container_name: mongodb-express
-#    image: mongo-express:latest
-#    expose:
-#      - 8081
-##    ports:
-##      - '8081:8081'
-#    environment:
-#      ME_CONFIG_MONGODB_SERVER: mongodb-server # this line will work as expected only if ME_CONFIG_MONGODB_URL is set simultaneounly, currently. (https://github.com/mongo-express/mongo-express-docker/issues/113)
-##      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-##      ME_CONFIG_MONGODB_ADMINPASSWORD: root
-#      ME_CONFIG_BASICAUTH_USERNAME: admin
-#      ME_CONFIG_BASICAUTH_PASSWORD: admin
-#      ME_CONFIG_MONGODB_URL: mongodb://mongodb-server:27017
-#    depends_on:
-#      - mongodb-server
-#    networks:
-#      - service-network
+  mongodb-express:
+    container_name: mongodb-express
+    image: mongo-express:latest
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb-server # this line will work as expected only if ME_CONFIG_MONGODB_URL is set simultaneounly, currently. (https://github.com/mongo-express/mongo-express-docker/issues/113)
+#      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+#      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb-server:27017
+    depends_on:
+      - mongodb-server
+    networks:
+      - service-network
 
 volumes:
   mongo1_data:
@@ -93,6 +89,3 @@ volumes:
 
 networks:
   service-network:
-    name: service-network
-    driver: bridge
-    external: true
