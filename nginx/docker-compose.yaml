@@ -1,0 +1,22 @@
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile
+#    depends_on:
+#      - power-optimizer
+    volumes:
+      - /home/ubuntu/nginx-logs:/var/log/nginx
+      - /home/ubuntu/nginx-configs:/etc/nginx/conf.d
+#    ports:
+#      - 8080:8787
+    expose:
+      - 8787
+    networks:
+      - service-network
+
+networks:
+  service-network:
+    name: service-network
+    driver: bridge
